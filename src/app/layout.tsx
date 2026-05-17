@@ -3,6 +3,7 @@ import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { Toaster } from "sonner";
 import SmoothScrollProvider from "@/components/SmoothScrollProvider";
 import CustomCursor from "@/components/CustomCursor";
 
@@ -42,6 +43,18 @@ export default function RootLayout({
           Both are no-ops outside of Vercel deployments — safe locally.
           Injected as deferred async scripts — zero impact on page load.
         */}
+        <Toaster
+          theme="dark"
+          position="bottom-right"
+          toastOptions={{
+            style: {
+              background: "#0a0c14",
+              border: "1px solid rgba(255,255,255,0.08)",
+              color: "#fff",
+              borderRadius: "12px",
+            },
+          }}
+        />
         <Analytics />
         <SpeedInsights />
       </body>

@@ -6,6 +6,7 @@ import ScrollGallery from "@/components/sections/ScrollGallery";
 import HowItWorks from "@/components/sections/HowItWorks";
 import Testimonials from "@/components/sections/Testimonials";
 import Pricing from "@/components/sections/Pricing";
+import Contact from "@/components/sections/Contact";
 import Footer from "@/components/sections/Footer";
 
 export default function Home() {
@@ -19,6 +20,7 @@ export default function Home() {
       <HowItWorks />
       <Testimonials />
       <Pricing />
+      <Contact />
       <Footer />
     </main>
   );

@@ -1,13 +1,7 @@
 "use client";
 
-import {
-  Sparkles,
-  Github,
-  Twitter,
-  Linkedin,
-  Instagram,
-  ArrowRight,
-} from "lucide-react";
+import { Sparkles, Github, Twitter, Linkedin, Instagram } from "lucide-react";
+import NewsletterForm from "@/components/forms/NewsletterForm";
 
 const NAV = [
   {
@@ -28,7 +22,7 @@ const SOCIALS = [
 
 export default function Footer() {
   return (
-    <footer id="contact" className="relative mt-16 border-t border-white/5 bg-surface/50 backdrop-blur-xl">
+    <footer className="relative mt-16 border-t border-white/5 bg-surface/50 backdrop-blur-xl">
       <div className="absolute inset-x-0 -top-px h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
 
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-14 sm:py-20">
@@ -48,25 +42,7 @@ export default function Footer() {
             </p>
 
             {/* Newsletter */}
-            <form
-              onSubmit={(e) => e.preventDefault()}
-              className="mt-8 flex w-full max-w-md items-center gap-2 rounded-full glass p-1.5"
-            >
-              <input
-                type="email"
-                required
-                placeholder="Your email address"
-                className="flex-1 bg-transparent px-4 py-2 text-sm text-white outline-none placeholder:text-white/40"
-              />
-              <button
-                type="submit"
-                data-cursor="join"
-                className="inline-flex items-center gap-1 rounded-full bg-white px-4 py-2 text-sm font-medium text-black transition hover:shadow-glow"
-              >
-                Subscribe
-                <ArrowRight className="h-4 w-4" />
-              </button>
-            </form>
+            <NewsletterForm />
 
             <div className="mt-8 flex items-center gap-3">
               {SOCIALS.map(({ Icon, label }) => (
