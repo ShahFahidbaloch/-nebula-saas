@@ -1,0 +1,33 @@
+# Dependencies
+node_modules
+
+# Next.js build output
+.next
+out
+
+# Environment variables — never commit real env files
+.env*
+!.env.example
+
+# Vercel deployment
+.vercel
+
+# TypeScript build info
+next-env.d.ts
+tsconfig.tsbuildinfo
+
+# OS artifacts
+.DS_Store
+*.log
+
+# Claude Code — AI assistant local config (commands, skills, settings)
+# These are machine-specific and contain no project logic
+.claude/
+
+# AI session context files — internal engineering notes, not for public repo
+# These live locally and sync via Claude Code sessions only
+CLAUDE.md
+AGENTS.md
+AI_HANDOFF.md
+DECISIONS.md
+TASKS.md
