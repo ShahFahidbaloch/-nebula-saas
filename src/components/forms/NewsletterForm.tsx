@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import HCaptcha from "@hcaptcha/react-hcaptcha";
 import { ArrowRight, Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -20,6 +20,8 @@ export default function NewsletterForm() {
   const [emailError, setEmailError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const captchaRef = useRef<HCaptcha>(null);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
   const pendingSubmitRef = useRef(false);
 
   const handleBlur = () => setEmailError(validateEmail(email));
@@ -104,8 +106,8 @@ export default function NewsletterForm() {
         <p className="mt-2 px-4 text-xs text-rose-400">{emailError}</p>
       )}
 
-      {/* Invisible hCaptcha — executed programmatically on submit */}
-      <HCaptcha
+      {/* Mounted gate prevents SSR/client hydration mismatch */}
+      {mounted && <HCaptcha
         ref={captchaRef}
         sitekey={SITE_KEY}
         size="invisible"
@@ -120,7 +122,7 @@ export default function NewsletterForm() {
           setLoading(false);
           pendingSubmitRef.current = false;
         }}
-      />
+      />}
     </form>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import HCaptcha from "@hcaptcha/react-hcaptcha";
 import { Loader2, Send } from "lucide-react";
 import { toast } from "sonner";
@@ -83,6 +83,8 @@ export default function ContactForm() {
   const [loading, setLoading] = useState(false);
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const captchaRef = useRef<HCaptcha>(null);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
   const set = (key: keyof Fields) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const value = e.target.value;
@@ -204,8 +206,8 @@ export default function ContactForm() {
         </div>
       </Field>
 
-      {/* hCaptcha — invisible, triggered on submit */}
-      <HCaptcha
+      {/* Mounted gate prevents SSR/client hydration mismatch */}
+      {mounted && <HCaptcha
         ref={captchaRef}
         sitekey={SITE_KEY}
         size="invisible"
@@ -219,7 +221,7 @@ export default function ContactForm() {
           setCaptchaToken(null);
           setLoading(false);
         }}
-      />
+      />}
 
       <button
         type="submit"
