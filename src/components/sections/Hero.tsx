@@ -2,11 +2,11 @@
 
 import dynamic from "next/dynamic";
 import { motion, useScroll, useTransform } from "framer-motion";
-import { useRef } from "react";
+import { useRef, useEffect, useState } from "react";
 import { ArrowRight, Play, Sparkles, Zap, Shield, BarChart3 } from "lucide-react";
 import MagneticButton from "@/components/ui/MagneticButton";
 
-// 3D scene is dynamic to keep it out of the SSR bundle (it touches `window`).
+// 3D scene is dynamic (no SSR) — it touches window and WebGL.
 const HeroScene = dynamic(() => import("@/components/three/HeroScene"), {
   ssr: false,
   loading: () => null,
@@ -15,9 +15,9 @@ const HeroScene = dynamic(() => import("@/components/three/HeroScene"), {
 /**
  * FloatingCard
  * ------------
- * Small UI snippet that drifts on scroll. Each card is offset on the
- * Y-axis by a different factor of scrollYProgress so they feel like
- * separate parallax planes.
+ * Parallax UI cards that drift at different scroll speeds.
+ * Hidden below lg — they need side-screen real estate to avoid overlapping
+ * the headline on smaller viewports.
  */
 function FloatingCard({
   className,
@@ -50,12 +50,20 @@ function FloatingCard({
 
 export default function Hero() {
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // Only mount the WebGL scene on desktop (lg+, 1024px).
+  // On mobile the aurora gradient provides sufficient visual richness
+  // while saving significant GPU/battery.
+  const [showScene, setShowScene] = useState(false);
+  useEffect(() => {
+    setShowScene(window.innerWidth >= 1024);
+  }, []);
+
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ["start start", "end start"],
   });
 
-  // Parallax on the hero title — drifts up slowly as you scroll.
   const titleY = useTransform(scrollYProgress, [0, 1], [0, -120]);
   const titleOpacity = useTransform(scrollYProgress, [0, 0.7], [1, 0.2]);
 
@@ -63,7 +71,7 @@ export default function Hero() {
     <section
       id="home"
       ref={containerRef}
-      className="relative isolate min-h-screen overflow-hidden pt-32 pb-20"
+      className="relative isolate min-h-screen overflow-hidden pt-24 pb-16 sm:pt-32 sm:pb-20"
     >
       {/* Layered backgrounds: aurora glow + grid mesh + radial fade. */}
       <div className="absolute inset-0 -z-10">
@@ -72,17 +80,19 @@ export default function Hero() {
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-background/40 to-background" />
       </div>
 
-      {/* 3D canvas — absolutely positioned so the headline sits on top. */}
-      <div className="absolute inset-0 -z-[5] opacity-90">
-        <HeroScene />
-      </div>
+      {/* 3D canvas — desktop only. Saves ~800 KB WebGL context on mobile. */}
+      {showScene && (
+        <div className="absolute inset-0 -z-[5] opacity-90">
+          <HeroScene />
+        </div>
+      )}
 
       <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <motion.div
           style={{ y: titleY, opacity: titleOpacity }}
           className="relative z-10 mx-auto max-w-4xl text-center"
         >
-          {/* Pill */}
+          {/* Pill badge */}
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
@@ -93,12 +103,12 @@ export default function Hero() {
             <span>Introducing Nebula v3 — now with AI co-pilot</span>
           </motion.div>
 
-          {/* Headline */}
+          {/* Headline — three responsive sizes */}
           <motion.h1
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.9, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
-            className="mt-6 text-5xl sm:text-6xl lg:text-7xl font-semibold tracking-tight leading-[1.05]"
+            className="mt-6 text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-semibold tracking-tight leading-[1.05]"
           >
             <span className="gradient-text">Build Your Future</span>
             <br />
@@ -112,7 +122,7 @@ export default function Hero() {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.25 }}
-            className="mx-auto mt-7 max-w-2xl text-base sm:text-lg text-white/60 leading-relaxed"
+            className="mx-auto mt-6 max-w-xl text-sm sm:text-base md:text-lg text-white/60 leading-relaxed px-4 sm:px-0"
           >
             Design, ship, and scale premium products with a futuristic toolkit
             crafted for ambitious teams. One platform. Infinite possibilities.
@@ -123,7 +133,7 @@ export default function Hero() {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.4 }}
-            className="mt-10 flex flex-wrap items-center justify-center gap-4"
+            className="mt-8 sm:mt-10 flex flex-wrap items-center justify-center gap-3 sm:gap-4"
           >
             <MagneticButton
               variant="primary"
@@ -146,13 +156,13 @@ export default function Hero() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.7, delay: 0.7 }}
-            className="mt-14 text-xs uppercase tracking-[0.25em] text-white/40"
+            className="mt-10 sm:mt-14 text-xs uppercase tracking-[0.25em] text-white/40"
           >
             Trusted by 12,000+ teams worldwide
           </motion.div>
         </motion.div>
 
-        {/* Floating UI cards with parallax depth. */}
+        {/* Floating UI cards — lg+ only, need side real estate */}
         <FloatingCard
           className="left-[5%] top-[28%] w-56"
           scrollFactor={-180}
@@ -160,7 +170,7 @@ export default function Hero() {
           delay={0.5}
         >
           <div className="flex items-center gap-3">
-            <div className="grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-brand-violet to-brand-blue">
+            <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-brand-violet to-brand-blue">
               <Zap className="h-5 w-5 text-white" />
             </div>
             <div>
@@ -177,7 +187,7 @@ export default function Hero() {
           delay={0.65}
         >
           <div className="flex items-center gap-3">
-            <div className="grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-brand-cyan to-brand-blue">
+            <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-brand-cyan to-brand-blue">
               <Shield className="h-5 w-5 text-white" />
             </div>
             <div>
@@ -194,7 +204,7 @@ export default function Hero() {
           delay={0.8}
         >
           <div className="flex items-center gap-3">
-            <div className="grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-brand-violet to-brand-cyan">
+            <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-brand-violet to-brand-cyan">
               <BarChart3 className="h-5 w-5 text-white" />
             </div>
             <div className="flex-1">

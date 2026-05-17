@@ -56,7 +56,7 @@ const PLANS = [
 
 export default function Pricing() {
   return (
-    <section id="pricing" className="relative py-32">
+    <section id="pricing" className="relative py-20 sm:py-28 lg:py-32">
       <div className="absolute inset-0 -z-10 bg-radial-glow opacity-60" />
 
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -65,18 +65,18 @@ export default function Pricing() {
             <span className="inline-flex items-center gap-2 rounded-full glass px-3 py-1 text-xs text-white/70">
               Pricing
             </span>
-            <h2 className="mt-5 text-4xl sm:text-5xl font-semibold tracking-tight">
+            <h2 className="mt-5 text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-tight">
               <span className="gradient-text">Simple, scalable</span>
               <br />
               pricing for every stage.
             </h2>
-            <p className="mt-5 text-white/60">
+            <p className="mt-4 text-sm sm:text-base text-white/60">
               Start free. Upgrade when you outgrow it. Cancel any time.
             </p>
           </div>
         </Reveal>
 
-        <div className="mt-16 grid gap-6 lg:grid-cols-3">
+        <div className="mt-10 sm:mt-14 lg:mt-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {PLANS.map((p, i) => (
             <Reveal key={p.name} delay={i * 0.08}>
               <div

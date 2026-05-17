@@ -141,7 +141,7 @@ function TiltCard({ feature, index }: { feature: Feature; index: number }) {
 
 export default function Features() {
   return (
-    <section id="features" className="relative py-32">
+    <section id="features" className="relative py-20 sm:py-28 lg:py-32">
       <div className="absolute inset-0 -z-10 bg-radial-glow" />
 
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -150,18 +150,18 @@ export default function Features() {
             <span className="inline-flex items-center gap-2 rounded-full glass px-3 py-1 text-xs text-white/70">
               Features
             </span>
-            <h2 className="mt-5 text-4xl sm:text-5xl font-semibold tracking-tight">
+            <h2 className="mt-5 text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-tight">
               <span className="gradient-text">Everything you need</span>
               <br /> to build at the edge.
             </h2>
-            <p className="mt-5 text-white/60">
+            <p className="mt-4 text-sm sm:text-base text-white/60">
               A complete toolkit for teams who want to ship faster, sleep
               better, and create products people actually love.
             </p>
           </div>
         </Reveal>
 
-        <div className="mt-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-10 sm:mt-14 lg:mt-16 grid gap-5 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {FEATURES.map((f, i) => (
             <TiltCard key={f.title} feature={f} index={i} />
           ))}

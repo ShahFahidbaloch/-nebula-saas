@@ -6,10 +6,6 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Reveal from "@/components/ui/Reveal";
 
-/**
- * Each card is built from gradient stops + a glyph rather than an external
- * image so the page has no network dependency. Looks luxe, ships instantly.
- */
 const CARDS = [
   {
     title: "Dashboards",
@@ -49,14 +45,14 @@ const CARDS = [
   },
 ];
 
-/** Shared card interior — identical markup for both animated and static layouts. */
+/** Shared card interior — same markup across all three layout branches. */
 function CardInner({ c, i }: { c: (typeof CARDS)[number]; i: number }) {
   return (
     <>
       <div className={`absolute inset-0 bg-gradient-to-br ${c.grad}`} />
       <div className="absolute inset-0 bg-black/30" />
       <div className="noise absolute inset-0" />
-      <div className="relative flex h-full flex-col justify-between p-7">
+      <div className="relative flex h-full flex-col justify-between p-6 sm:p-7">
         <div className="flex items-center justify-between text-white/80">
           <span className="text-xs uppercase tracking-[0.25em]">
             Module · {String(i + 1).padStart(2, "0")}
@@ -65,8 +61,8 @@ function CardInner({ c, i }: { c: (typeof CARDS)[number]; i: number }) {
         </div>
         <div>
           <div className="text-xs uppercase tracking-[0.25em] text-white/60">{c.sub}</div>
-          <div className="mt-2 text-3xl font-semibold text-white">{c.title}</div>
-          <div className="mt-6 inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1.5 text-xs text-white backdrop-blur">
+          <div className="mt-2 text-2xl sm:text-3xl font-semibold text-white">{c.title}</div>
+          <div className="mt-5 inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1.5 text-xs text-white backdrop-blur">
             Explore →
           </div>
         </div>
@@ -75,14 +71,41 @@ function CardInner({ c, i }: { c: (typeof CARDS)[number]; i: number }) {
   );
 }
 
+/** Shared section heading used in all three layout branches. */
+function Heading({ scrollable = false }: { scrollable?: boolean }) {
+  return (
+    <Reveal>
+      <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end">
+        <div>
+          <span className="inline-flex items-center gap-2 rounded-full glass px-3 py-1 text-xs text-white/70">
+            Modules
+          </span>
+          <h2 className="mt-4 max-w-xl text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-tight">
+            <span className="gradient-text">A modular universe</span>
+            <br />
+            for modern teams.
+          </h2>
+        </div>
+        <p className="max-w-xs text-sm text-white/60">
+          {scrollable
+            ? "Swipe to explore every module."
+            : "Each module works on its own and feels right at home together."}
+        </p>
+      </div>
+    </Reveal>
+  );
+}
+
 /**
- * 3D Scroll Gallery
- * -----------------
- * Default: pins the section and horizontally translates the track via
- * ScrollTrigger.scrub. Cards have per-card Y/scale parallax.
+ * ScrollGallery — three layout branches based on context:
  *
- * Reduced motion: renders the same cards in a static responsive grid —
- * no pinning, no transforms, fully readable without animation.
+ * 1. prefers-reduced-motion → static 2–3 col grid (no animation at all)
+ * 2. mobile / tablet (< lg, < 1024px) → CSS snap-scroll horizontal carousel
+ *    • Native browser scroll, no GSAP, works perfectly on iOS Safari
+ *    • Cards fill ~80vw so users can see the next card peeking in
+ * 3. desktop (lg+) → GSAP pinned horizontal scroll with per-card parallax
+ *    • GSAP only activates when window.innerWidth >= 1024 (checked synchronously
+ *      in useLayoutEffect before first paint)
  */
 export default function ScrollGallery() {
   const sectionRef = useRef<HTMLElement>(null);
@@ -90,9 +113,12 @@ export default function ScrollGallery() {
   const reduce = useReducedMotion();
 
   useLayoutEffect(() => {
-    // Skip all GSAP setup when user prefers reduced motion.
-    // The static grid branch (below) handles the no-motion layout.
+    // Skip GSAP for reduced motion users — the static grid handles their view.
     if (reduce) return;
+    // Skip GSAP on mobile/tablet — the CSS snap carousel handles their view.
+    // Checking synchronously here prevents GSAP from reading wrong dimensions
+    // on a layout that is display:none at this viewport width.
+    if (window.innerWidth < 1024) return;
 
     gsap.registerPlugin(ScrollTrigger);
 
@@ -100,7 +126,6 @@ export default function ScrollGallery() {
       const track = trackRef.current!;
       const section = sectionRef.current!;
 
-      // Distance to translate = full track width minus the viewport width.
       const getDistance = () => track.scrollWidth - window.innerWidth;
 
       const tween = gsap.to(track, {
@@ -117,7 +142,6 @@ export default function ScrollGallery() {
         },
       });
 
-      // Per-card parallax: each card lifts on its own scrubbed timeline.
       const cards = gsap.utils.toArray<HTMLElement>("[data-gallery-card]");
       cards.forEach((card, i) => {
         gsap.fromTo(
@@ -143,33 +167,17 @@ export default function ScrollGallery() {
     return () => ctx.revert();
   }, [reduce]);
 
-  // --- Reduced-motion branch: static responsive grid ---
+  /* ── Branch 1: prefers-reduced-motion ──────────────────────────────── */
   if (reduce) {
     return (
-      <section className="relative py-32 bg-gradient-to-b from-background via-surface to-background">
+      <section className="relative py-20 sm:py-28 bg-gradient-to-b from-background via-surface to-background">
         <div className="pointer-events-none absolute inset-0 bg-grid opacity-30" />
         <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <Reveal>
-            <div className="flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-end">
-              <div>
-                <span className="inline-flex items-center gap-2 rounded-full glass px-3 py-1 text-xs text-white/70">
-                  Modules
-                </span>
-                <h2 className="mt-5 max-w-xl text-4xl sm:text-5xl font-semibold tracking-tight">
-                  <span className="gradient-text">A modular universe</span>
-                  <br />
-                  for modern teams.
-                </h2>
-              </div>
-              <p className="max-w-md text-white/60">
-                Each module works on its own and feels right at home together.
-              </p>
-            </div>
-          </Reveal>
-          <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <Heading />
+          <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {CARDS.map((c, i) => (
-              <Reveal key={c.title} delay={i * 0.06}>
-                <div className="relative h-[320px] overflow-hidden rounded-[28px] border border-white/10 shadow-soft">
+              <Reveal key={c.title} delay={i * 0.05}>
+                <div className="relative h-[300px] sm:h-[320px] overflow-hidden rounded-[24px] border border-white/10 shadow-soft">
                   <CardInner c={c} i={i} />
                 </div>
               </Reveal>
@@ -180,52 +188,70 @@ export default function ScrollGallery() {
     );
   }
 
-  // --- Default branch: GSAP pinned horizontal scroll ---
   return (
-    <section
-      ref={sectionRef}
-      className="relative h-screen overflow-hidden bg-gradient-to-b from-background via-surface to-background"
-    >
-      <div className="pointer-events-none absolute inset-0 bg-grid opacity-30" />
-
-      <div className="relative z-10 mx-auto max-w-7xl px-4 pt-20 sm:px-6 lg:px-8">
-        <Reveal>
-          <div className="flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-end">
-            <div>
-              <span className="inline-flex items-center gap-2 rounded-full glass px-3 py-1 text-xs text-white/70">
-                Modules
-              </span>
-              <h2 className="mt-5 max-w-xl text-4xl sm:text-5xl font-semibold tracking-tight">
-                <span className="gradient-text">A modular universe</span>
-                <br />
-                for modern teams.
-              </h2>
-            </div>
-            <p className="max-w-md text-white/60">
-              Scroll to explore the modules that power Nebula — each one
-              works on its own and feels right at home together.
-            </p>
-          </div>
-        </Reveal>
-      </div>
-
-      {/* Track */}
-      <div className="absolute bottom-12 left-0 right-0 top-1/2 -translate-y-1/3">
-        <div
-          ref={trackRef}
-          className="flex gap-8 pl-[8vw] pr-[20vw] will-change-transform"
-        >
+    <>
+      {/* ── Branch 2: mobile / tablet — CSS snap carousel (lg:hidden) ─── */}
+      <section className="lg:hidden relative py-20 sm:py-24 bg-gradient-to-b from-background via-surface to-background">
+        <div className="pointer-events-none absolute inset-0 bg-grid opacity-30" />
+        <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6">
+          <Heading scrollable />
+        </div>
+        {/*
+          Negative horizontal margin + padding lets the track bleed to the
+          screen edge while keeping card content aligned to the grid.
+          scrollbar-none hides the native scrollbar on all browsers.
+        */}
+        <div className="relative z-10 mt-8 -mx-4 sm:-mx-6 px-4 sm:px-6
+                        flex gap-4 overflow-x-auto snap-x snap-mandatory
+                        scrollbar-none pb-6">
           {CARDS.map((c, i) => (
             <div
               key={c.title}
-              data-gallery-card
-              className="relative h-[420px] w-[320px] sm:w-[360px] shrink-0 overflow-hidden rounded-[28px] border border-white/10 shadow-soft"
+              className="snap-center shrink-0 relative
+                         w-[78vw] max-w-[320px]
+                         h-[320px] sm:h-[360px]
+                         overflow-hidden rounded-[24px]
+                         border border-white/10 shadow-soft"
             >
               <CardInner c={c} i={i} />
             </div>
           ))}
+          {/* Trailing spacer so the last card doesn't flush against the edge */}
+          <div className="shrink-0 w-4 sm:w-6" aria-hidden />
         </div>
-      </div>
-    </section>
+      </section>
+
+      {/* ── Branch 3: desktop — GSAP pinned horizontal scroll (hidden lg:block) */}
+      <section
+        ref={sectionRef}
+        className="hidden lg:block relative h-screen overflow-hidden
+                   bg-gradient-to-b from-background via-surface to-background"
+      >
+        <div className="pointer-events-none absolute inset-0 bg-grid opacity-30" />
+
+        <div className="relative z-10 mx-auto max-w-7xl px-4 pt-20 sm:px-6 lg:px-8">
+          <Heading scrollable />
+        </div>
+
+        <div className="absolute bottom-12 left-0 right-0 top-1/2 -translate-y-1/3">
+          <div
+            ref={trackRef}
+            className="flex gap-8 pl-[8vw] pr-[20vw] will-change-transform"
+          >
+            {CARDS.map((c, i) => (
+              <div
+                key={c.title}
+                data-gallery-card
+                className="relative h-[420px] w-[340px] xl:w-[380px] shrink-0
+                           overflow-hidden rounded-[28px]
+                           border border-white/10 shadow-soft"
+              >
+                <CardInner c={c} i={i} />
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    </>
   );
 }

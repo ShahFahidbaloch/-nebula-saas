@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Mail, Lock, Eye, EyeOff, Github, Apple, Chrome } from "lucide-react";
 import MagneticButton from "@/components/ui/MagneticButton";
 import Reveal from "@/components/ui/Reveal";
@@ -14,20 +14,30 @@ const LoginScene = dynamic(() => import("@/components/three/LoginScene"), {
 /**
  * Login section
  * -------------
- * Glassmorphic card centered over a 3D scene. Inputs are uncontrolled
- * (purely visual for the landing demo) — wire to real auth when needed.
+ * Glassmorphic card over a 3D background. The 3D scene is desktop-only —
+ * WebGL is expensive on mobile GPUs and unnecessary here since the gradient
+ * backdrop reads well without it. Inputs are uncontrolled (landing demo).
  */
 export default function Login() {
   const [showPass, setShowPass] = useState(false);
 
+  // Only mount the WebGL scene on desktop (lg+, 1024px).
+  const [showScene, setShowScene] = useState(false);
+  useEffect(() => {
+    setShowScene(window.innerWidth >= 1024);
+  }, []);
+
   return (
-    <section id="login" className="relative overflow-hidden py-32">
-      <div className="absolute inset-0 -z-10 opacity-70">
-        <LoginScene />
-      </div>
+    <section id="login" className="relative overflow-hidden py-20 sm:py-28 lg:py-32">
+      {/* 3D background — desktop only */}
+      {showScene && (
+        <div className="absolute inset-0 -z-10 opacity-70">
+          <LoginScene />
+        </div>
+      )}
       <div className="absolute inset-0 -z-[5] bg-gradient-to-b from-background via-transparent to-background" />
 
-      <div className="mx-auto grid max-w-7xl gap-16 px-4 sm:px-6 lg:grid-cols-2 lg:px-8 lg:items-center">
+      <div className="mx-auto grid max-w-7xl gap-12 lg:gap-16 px-4 sm:px-6 lg:grid-cols-2 lg:px-8 lg:items-center">
         {/* Left column — copy */}
         <Reveal>
           <div className="max-w-xl">
@@ -35,23 +45,23 @@ export default function Login() {
               <span className="h-1.5 w-1.5 rounded-full bg-brand-cyan animate-pulse" />
               Secure access
             </div>
-            <h2 className="mt-5 text-4xl sm:text-5xl font-semibold tracking-tight">
+            <h2 className="mt-5 text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-tight">
               <span className="gradient-text">Sign in to your</span>
               <br />
               command center.
             </h2>
-            <p className="mt-5 text-white/60 leading-relaxed">
+            <p className="mt-4 sm:mt-5 text-white/60 leading-relaxed text-sm sm:text-base">
               Pick up where you left off. Real-time dashboards, AI workflows,
               and your entire team — one tap away.
             </p>
-            <ul className="mt-8 space-y-3 text-sm text-white/70">
+            <ul className="mt-6 sm:mt-8 space-y-3 text-sm text-white/70">
               {[
                 "Passwordless and biometric sign-in",
                 "End-to-end encrypted by default",
                 "Single sign-on for enterprise teams",
               ].map((t) => (
                 <li key={t} className="flex items-center gap-3">
-                  <span className="grid h-5 w-5 place-items-center rounded-full bg-gradient-to-br from-brand-violet to-brand-cyan text-[10px] text-white">
+                  <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-gradient-to-br from-brand-violet to-brand-cyan text-[10px] text-white">
                     ✓
                   </span>
                   {t}
@@ -71,22 +81,22 @@ export default function Login() {
             style={{ transformPerspective: 1200 }}
             className="relative mx-auto w-full max-w-md"
           >
-            <div className="glass-strong gradient-border noise rounded-3xl p-8 sm:p-10 shadow-soft">
+            <div className="glass-strong gradient-border noise rounded-3xl p-6 sm:p-8 lg:p-10 shadow-soft">
               <div className="text-center">
-                <h3 className="text-2xl font-semibold text-white">Welcome back</h3>
+                <h3 className="text-xl sm:text-2xl font-semibold text-white">Welcome back</h3>
                 <p className="mt-1 text-sm text-white/60">
                   Enter your details to access your workspace.
                 </p>
               </div>
 
               {/* Email */}
-              <div className="mt-8 space-y-4">
+              <div className="mt-6 sm:mt-8 space-y-4">
                 <label className="block">
                   <span className="text-xs uppercase tracking-wider text-white/60">
                     Email
                   </span>
                   <div className="mt-2 flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 transition focus-within:border-brand-cyan/60 focus-within:bg-white/[0.06]">
-                    <Mail className="h-4 w-4 text-white/50" />
+                    <Mail className="h-4 w-4 shrink-0 text-white/50" />
                     <input
                       type="email"
                       placeholder="you@nebula.io"
@@ -101,7 +111,7 @@ export default function Login() {
                     Password
                   </span>
                   <div className="mt-2 flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 transition focus-within:border-brand-cyan/60 focus-within:bg-white/[0.06]">
-                    <Lock className="h-4 w-4 text-white/50" />
+                    <Lock className="h-4 w-4 shrink-0 text-white/50" />
                     <input
                       type={showPass ? "text" : "password"}
                       placeholder="••••••••••"
@@ -111,7 +121,7 @@ export default function Login() {
                       type="button"
                       onClick={() => setShowPass((v) => !v)}
                       aria-label="Toggle password visibility"
-                      className="text-white/40 hover:text-white"
+                      className="text-white/40 hover:text-white transition-colors"
                       data-cursor=""
                     >
                       {showPass ? (
@@ -125,8 +135,8 @@ export default function Login() {
 
                 {/* Remember / Forgot */}
                 <div className="flex items-center justify-between text-xs">
-                  <label className="flex items-center gap-2 text-white/60 cursor-none">
-                    <span className="relative grid h-4 w-4 place-items-center rounded border border-white/20 bg-white/[0.05] peer-checked:bg-brand-violet">
+                  <label className="flex items-center gap-2 text-white/60">
+                    <span className="relative grid h-4 w-4 place-items-center rounded border border-white/20 bg-white/[0.05]">
                       <input
                         type="checkbox"
                         className="peer absolute inset-0 h-full w-full appearance-none rounded"
@@ -135,7 +145,7 @@ export default function Login() {
                     </span>
                     Remember me
                   </label>
-                  <a href="#" className="text-white/60 hover:text-brand-cyan transition">
+                  <a href="#" className="text-white/60 hover:text-brand-cyan transition-colors">
                     Forgot password?
                   </a>
                 </div>
@@ -154,7 +164,7 @@ export default function Login() {
                   <div className="h-px flex-1 bg-white/10" />
                 </div>
 
-                {/* Social */}
+                {/* Social login */}
                 <div className="grid grid-cols-3 gap-3">
                   {[
                     { Icon: Chrome, label: "Google" },
@@ -164,6 +174,7 @@ export default function Login() {
                     <button
                       key={label}
                       data-cursor={label}
+                      aria-label={`Continue with ${label}`}
                       className="group flex items-center justify-center rounded-2xl border border-white/10 bg-white/[0.03] py-2.5 text-white/80 transition hover:border-white/20 hover:bg-white/[0.08]"
                     >
                       <Icon className="h-4 w-4 transition group-hover:scale-110" />
@@ -180,7 +191,7 @@ export default function Login() {
               </div>
             </div>
 
-            {/* Glow under the card. */}
+            {/* Ambient glow under the card */}
             <div className="pointer-events-none absolute -inset-6 -z-10 rounded-[40px] bg-gradient-to-r from-brand-violet/30 via-brand-blue/20 to-brand-cyan/30 blur-3xl opacity-60" />
           </motion.div>
         </Reveal>

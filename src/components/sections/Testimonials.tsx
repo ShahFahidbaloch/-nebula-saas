@@ -40,7 +40,7 @@ function Card({ q }: { q: (typeof QUOTES)[number] }) {
   return (
     <div
       data-cursor=""
-      className="group relative w-[340px] sm:w-[400px] shrink-0 rounded-3xl glass gradient-border p-7 transition hover:-translate-y-1 hover:shadow-glow"
+      className="group relative w-[82vw] max-w-[340px] sm:w-[360px] md:w-[400px] shrink-0 rounded-3xl glass gradient-border p-6 sm:p-7 transition hover:-translate-y-1 hover:shadow-glow"
     >
       <div className="flex items-center gap-1 text-brand-cyan">
         {Array.from({ length: 5 }).map((_, i) => (
@@ -75,24 +75,24 @@ function Card({ q }: { q: (typeof QUOTES)[number] }) {
  */
 export default function Testimonials() {
   return (
-    <section className="relative py-32 overflow-hidden">
+    <section className="relative py-20 sm:py-28 lg:py-32 overflow-hidden">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <Reveal>
           <div className="mx-auto max-w-2xl text-center">
             <span className="inline-flex items-center gap-2 rounded-full glass px-3 py-1 text-xs text-white/70">
               Loved by makers
             </span>
-            <h2 className="mt-5 text-4xl sm:text-5xl font-semibold tracking-tight">
+            <h2 className="mt-5 text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-tight">
               <span className="gradient-text">Real teams.</span> Real results.
             </h2>
           </div>
         </Reveal>
       </div>
 
-      <div className="relative mt-16">
-        {/* Edge fade so cards melt into the background. */}
-        <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-40 bg-gradient-to-r from-background to-transparent" />
-        <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-40 bg-gradient-to-l from-background to-transparent" />
+      <div className="relative mt-10 sm:mt-16">
+        {/* Edge fade — narrower on mobile so first card is more visible */}
+        <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-12 sm:w-24 lg:w-40 bg-gradient-to-r from-background to-transparent" />
+        <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-12 sm:w-24 lg:w-40 bg-gradient-to-l from-background to-transparent" />
 
         <div className="flex w-max marquee gap-6 pl-6">
           {QUOTES.concat(QUOTES).map((q, i) => (

@@ -64,22 +64,22 @@ export default function HowItWorks() {
   }, [reduce]);
 
   return (
-    <section id="about" ref={sectionRef} className="relative py-32">
+    <section id="about" ref={sectionRef} className="relative py-20 sm:py-28 lg:py-32">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <Reveal>
           <div className="mx-auto max-w-2xl text-center">
             <span className="inline-flex items-center gap-2 rounded-full glass px-3 py-1 text-xs text-white/70">
               How it works
             </span>
-            <h2 className="mt-5 text-4xl sm:text-5xl font-semibold tracking-tight">
+            <h2 className="mt-5 text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-tight">
               <span className="gradient-text">From idea to live</span>
               <br /> in three steps.
             </h2>
           </div>
         </Reveal>
 
-        <div className="relative mt-20">
-          {/* Animated connector (horizontal on lg, vertical on small) */}
+        <div className="relative mt-14 sm:mt-20">
+          {/* Animated connector — lg+ only, needs horizontal layout */}
           <div className="absolute left-0 right-0 top-12 hidden h-px lg:block">
             <div
               ref={lineRef}
@@ -87,7 +87,7 @@ export default function HowItWorks() {
             />
           </div>
 
-          <div className="grid gap-10 lg:grid-cols-3">
+          <div className="grid gap-12 sm:gap-10 lg:grid-cols-3">
             {STEPS.map((s, i) => {
               const Icon = s.icon;
               return (

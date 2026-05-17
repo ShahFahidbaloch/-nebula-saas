@@ -52,9 +52,14 @@ body {
 @layer components {
   .glass {
     @apply bg-white/[0.04] backdrop-blur-xl border border-white/10;
+    /* Safari < 16 requires the -webkit- prefix for backdrop-filter.
+       Autoprefixer adds it in the build, but we add an explicit fallback
+       here for the custom glass class used in globals and JSX className. */
+    -webkit-backdrop-filter: blur(24px);
   }
   .glass-strong {
     @apply bg-white/[0.06] backdrop-blur-2xl border border-white/10;
+    -webkit-backdrop-filter: blur(40px);
   }
   .gradient-text {
     background: linear-gradient(120deg, #fff 0%, #a5b4fc 40%, #22d3ee 100%);
@@ -94,13 +99,28 @@ body {
     mix-blend-mode: overlay;
     background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9'/></filter><rect width='100%' height='100%' filter='url(%23n)' opacity='0.6'/></svg>");
   }
+
+  /* Hides the native scrollbar while keeping scroll functional.
+     Used on the mobile ScrollGallery snap carousel. */
+  .scrollbar-none {
+    scrollbar-width: none;        /* Firefox */
+    -ms-overflow-style: none;     /* IE / old Edge */
+  }
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;                /* Chrome, Safari, Edge */
+  }
 }
 
-/* Animated conic glow used in hero / login background blobs. */
+/* Animated conic glow used in hero background.
+   - will-change promotes it to its own GPU layer so the blur+spin
+     doesn't trigger layout/paint on every frame (Chrome, Firefox, Safari).
+   - On mobile (< 1024px) animation is disabled: the blur(80px) filter is
+     very expensive on mobile GPUs. Static color is preserved. */
 .aurora {
   position: absolute;
   inset: -20%;
   filter: blur(80px);
+  will-change: transform;
   background: conic-gradient(
     from 0deg,
     rgba(124, 58, 237, 0.55),
@@ -112,19 +132,40 @@ body {
   opacity: 0.55;
 }
 
+@media (max-width: 1023px) {
+  .aurora {
+    animation: none;
+    opacity: 0.35;
+    /* Static position saves continuous GPU compositing on mobile. */
+    transform: none;
+  }
+}
+
+/* Honor system-level motion preference for the aurora as well. */
+@media (prefers-reduced-motion: reduce) {
+  .aurora {
+    animation: none;
+  }
+  .marquee {
+    animation: none;
+  }
+}
+
 /* Soft grid background for hero. */
 .bg-grid {
   background-image:
     linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
     linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
   background-size: 56px 56px;
+  /* Both prefixed (Safari 10–14) and unprefixed (all modern browsers). */
+  -webkit-mask-image: radial-gradient(ellipse at center, #000 30%, transparent 75%);
   mask-image: radial-gradient(ellipse at center, #000 30%, transparent 75%);
 }
 
 /* Marquee for testimonials track. */
 @keyframes marquee {
   from { transform: translateX(0); }
-  to { transform: translateX(-50%); }
+  to   { transform: translateX(-50%); }
 }
 .marquee {
   animation: marquee 38s linear infinite;
