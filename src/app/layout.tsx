@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import SmoothScrollProvider from "@/components/SmoothScrollProvider";
 import CustomCursor from "@/components/CustomCursor";
 
@@ -34,6 +36,14 @@ export default function RootLayout({
           <CustomCursor />
           {children}
         </SmoothScrollProvider>
+        {/*
+          Analytics: tracks page views, referrers, countries, devices.
+          SpeedInsights: tracks real-user Core Web Vitals (LCP, CLS, INP).
+          Both are no-ops outside of Vercel deployments — safe locally.
+          Injected as deferred async scripts — zero impact on page load.
+        */}
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
