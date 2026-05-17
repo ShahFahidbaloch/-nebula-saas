@@ -1,107 +1,100 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { motion, useMotionValue, useSpring } from "framer-motion";
+import { useEffect, useRef } from "react";
+import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 
 /**
- * CustomCursor
- * -------------
- * Two-part cursor:
- *  - Outer ring: lerps toward the mouse via a soft spring (trailing feel).
- *  - Inner dot:  follows the pointer 1:1 for precision.
+ * CustomCursor — zero React re-renders version.
  *
- * Hover state expands the ring and adds a label when over `[data-cursor]`
- * elements. Mouse-down adds a satisfying squeeze.
+ * All state lives in Framer motion values so updates bypass React's
+ * reconciler entirely. The label is written via direct DOM mutation.
+ * Net result: no component re-render on any pointer event.
  */
 export default function CustomCursor() {
-  const x = useMotionValue(-100);
-  const y = useMotionValue(-100);
+  const mouseX = useMotionValue(-100);
+  const mouseY = useMotionValue(-100);
+  const hovered = useMotionValue(0);  // 0 | 1
+  const pressed  = useMotionValue(0); // 0 | 1
 
-  // Spring eases the outer ring without making it feel laggy.
-  const ringX = useSpring(x, { stiffness: 350, damping: 30, mass: 0.5 });
-  const ringY = useSpring(y, { stiffness: 350, damping: 30, mass: 0.5 });
+  // Snappy spring — high stiffness keeps it close; mass < 1 removes inertia.
+  const x = useSpring(mouseX, { stiffness: 600, damping: 38, mass: 0.25 });
+  const y = useSpring(mouseY, { stiffness: 600, damping: 38, mass: 0.25 });
 
-  const [hovered, setHovered] = useState(false);
-  const [label, setLabel] = useState<string | null>(null);
-  const [pressed, setPressed] = useState(false);
-  const enabledRef = useRef(false);
+  // Scale replaces width/height animation — GPU only, no layout cost.
+  const ringScale = useTransform(() =>
+    pressed.get() ? 0.82 : hovered.get() ? 1.7 : 1
+  );
+
+  const ringBg = useTransform(
+    hovered,
+    [0, 1],
+    ["rgba(255,255,255,0)", "rgba(255,255,255,0.92)"]
+  );
+
+  const labelRef = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
-    // Don't run on touch devices — would just sit at (0,0).
-    enabledRef.current = window.matchMedia("(pointer: fine)").matches;
-    if (!enabledRef.current) return;
+    if (!window.matchMedia("(pointer: fine)").matches) return;
 
-    const move = (e: MouseEvent) => {
-      x.set(e.clientX);
-      y.set(e.clientY);
+    const onMove = (e: MouseEvent) => {
+      mouseX.set(e.clientX);
+      mouseY.set(e.clientY);
     };
-    const down = () => setPressed(true);
-    const up = () => setPressed(false);
 
-    // Delegate hover state once for the entire document — much cheaper than
-    // attaching listeners to every interactive element.
-    const over = (e: MouseEvent) => {
-      const target = e.target as HTMLElement | null;
-      const hit = target?.closest<HTMLElement>(
-        "[data-cursor], a, button, input, textarea, [role='button']"
+    const onOver = (e: MouseEvent) => {
+      const hit = (e.target as HTMLElement)?.closest<HTMLElement>(
+        "[data-cursor], a, button, input, textarea, select, [role='button']"
       );
-      if (hit) {
-        setHovered(true);
-        setLabel(hit.dataset.cursor || null);
-      } else {
-        setHovered(false);
-        setLabel(null);
-      }
+      hovered.set(hit ? 1 : 0);
+      // Direct DOM write — no setState, no re-render.
+      if (labelRef.current)
+        labelRef.current.textContent = hit?.dataset.cursor ?? "";
     };
 
-    window.addEventListener("mousemove", move, { passive: true });
-    window.addEventListener("mousedown", down);
-    window.addEventListener("mouseup", up);
-    window.addEventListener("mouseover", over);
+    const onDown = () => pressed.set(1);
+    const onUp   = () => pressed.set(0);
+
+    window.addEventListener("mousemove", onMove, { passive: true });
+    window.addEventListener("mouseover", onOver, { passive: true });
+    window.addEventListener("mousedown", onDown,  { passive: true });
+    window.addEventListener("mouseup",   onUp,    { passive: true });
+
     return () => {
-      window.removeEventListener("mousemove", move);
-      window.removeEventListener("mousedown", down);
-      window.removeEventListener("mouseup", up);
-      window.removeEventListener("mouseover", over);
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseover", onOver);
+      window.removeEventListener("mousedown", onDown);
+      window.removeEventListener("mouseup",   onUp);
     };
-  }, [x, y]);
+  }, [mouseX, mouseY, hovered, pressed]);
 
   return (
     <>
-      {/* Ring — translate centers it on the pointer (50% of its own size). */}
+      {/* Ring — fixed 36px, scaled up on hover via transform (no layout). */}
       <motion.div
         aria-hidden
-        className="pointer-events-none fixed left-0 top-0 z-[9999] hidden md:flex items-center justify-center rounded-full mix-blend-difference"
+        className="pointer-events-none fixed left-0 top-0 z-[9999] hidden md:flex h-9 w-9 items-center justify-center rounded-full border border-white/90 mix-blend-difference"
         style={{
-          x: ringX,
-          y: ringY,
+          x,
+          y,
           translateX: "-50%",
           translateY: "-50%",
+          scale: ringScale,
+          backgroundColor: ringBg,
         }}
-        animate={{
-          width: hovered ? 64 : 36,
-          height: hovered ? 64 : 36,
-          backgroundColor: hovered ? "rgba(255,255,255,0.95)" : "rgba(255,255,255,0)",
-          borderColor: "rgba(255,255,255,0.9)",
-          borderWidth: 1.5,
-          scale: pressed ? 0.85 : 1,
-        }}
-        transition={{ type: "spring", stiffness: 280, damping: 24 }}
       >
-        {label && (
-          <span className="text-[10px] uppercase tracking-[0.18em] font-medium text-black">
-            {label}
-          </span>
-        )}
+        <span
+          ref={labelRef}
+          className="text-[10px] uppercase tracking-[0.18em] font-medium text-black leading-none"
+        />
       </motion.div>
 
-      {/* Dot — uses the raw motion values (no spring) for precision. */}
+      {/* Dot — raw values, no spring, perfectly precise. */}
       <motion.div
         aria-hidden
         className="pointer-events-none fixed left-0 top-0 z-[9999] hidden md:block h-1.5 w-1.5 rounded-full bg-white mix-blend-difference"
         style={{
-          x,
-          y,
+          x: mouseX,
+          y: mouseY,
           translateX: "-50%",
           translateY: "-50%",
         }}
