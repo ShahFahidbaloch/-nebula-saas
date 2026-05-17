@@ -30,7 +30,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${jakarta.variable}`}>
-      <body className="font-sans antialiased selection:bg-brand-violet/40">
+      <body suppressHydrationWarning className="font-sans antialiased selection:bg-brand-violet/40">
         {/* Lenis-powered smooth scroll for the premium "buttery" feel. */}
         <SmoothScrollProvider>
           {/* Single global cursor — children stay default-cursor-free via globals.css. */}
